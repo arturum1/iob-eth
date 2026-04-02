@@ -39,6 +39,10 @@ def setup(py_params_dict):
                 "hardware/fpga/vivado/iob_aes_ku040_db_g/iob_eth_dev.sdc",
             ),
             (
+                f"hardware/fpga/vivado/iob_smart_zynq_sl/{dev_sdc}",
+                "hardware/fpga/vivado/iob_smart_zynq_sl/iob_eth_dev.sdc",
+            ),
+            (
                 f"hardware/fpga/quartus/iob_cyclonev_gt_dk/{dev_sdc}",
                 "hardware/fpga/quartus/iob_cyclonev_gt_dk/iob_eth_dev.sdc",
             ),
