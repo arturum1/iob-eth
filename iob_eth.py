@@ -70,7 +70,7 @@ def setup(py_params_dict):
         "generate_hw": True,
         "description": "IObundle's ethernet core. Driver-compatible with the OpenCores ethmac core, containing a similar Control/Status Register interface. The original sources for this core and public key signature are available at: https://github.com/IObundle/iob-eth.",
         "version": VERSION,
-        "board_list": ["iob_aes_ku040_db_g", "iob_cyclonev_gt_dk", "iob_smart_zynq_sl"],
+        "board_list": ["iob_aes_ku040_db_g", "iob_cyclonev_gt_dk"],
         "confs": [
             # Macros
             {
