@@ -490,3 +490,14 @@ under grant agreement Nos 957073 and 101092990.
         <td align="center"><img src="https://nlnet.nl/image/logos/NGIAssure_tag.svg" alt="NGI Assure logo" style="width:90%"></td>
     </tr>
 </table>
+
+The work has been partially performed in the scope of the A-IQ Ready project, which receives funding within Chips Joint Undertaking (Chips JU) - the Public-Private Partnership for research, development, and innovation under Horizon Europe – and National Authorities under grant agreement No. 101096658.
+
+The A-IQ Ready project is supported by the Chips Joint Undertaking (Chips JU) - the Public-Private Partnership for research, development, and innovation under Horizon Europe – and National Authorities under Grant Agreement No. 101096658.
+
+<table>
+    <tr>
+        <td align="center" width="50%"><img src="assets/A-IQ_Ready_logo_blue_transp.png" alt="AI-Q Ready logo" style="width:50%"></td>
+        <td align="center"><img src="assets/Chips-JU_logo.jpeg" alt="Chips JU logo" style="width:50%"></td>
+    </tr>
+</table>
