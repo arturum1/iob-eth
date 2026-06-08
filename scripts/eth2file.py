@@ -47,7 +47,8 @@ def eth_2_file(socket_object, file_object, mac_filter=None):
 
 def file_2_eth_thread(socket_object, fifo_file_path):
     # With a name pipe, we don't need keep polling and deleting chars from the file
-    os.mkfifo(fifo_file_path)
+    if not os.path.exists(fifo_file_path):
+        os.mkfifo(fifo_file_path)
     with open(fifo_file_path, "rb") as input_file:
         file_2_eth(socket_object, input_file)
 
