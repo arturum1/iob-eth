@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-only
 
 ## IObundle Releases Industrial-Grade Open-Source Ethernet IP Core with Comprehensive Verification Flow
 
-**Lisbon, Portugal – February 15, 2026** – IObundle, Lda, a leading provider of open-source semiconductor IP cores, today announced the availability of IOb-Eth, a professional-grade, MIT-licensed Ethernet IP core designed for industrial applications. The core represents a significant advancement in open-source hardware IP, offering production-ready functionality with comprehensive verification, synthesis, and FPGA implementation support.
+**Lisbon, Portugal – February 15, 2026** – IObundle, Lda, a leading provider of open-source semiconductor IP cores, today announced the availability of IOb-Eth, a professional-grade, GPL-3.0-licensed Ethernet IP core designed for industrial applications. The core represents a significant advancement in open-source hardware IP, offering production-ready functionality with comprehensive verification, synthesis, and FPGA implementation support.
 
 ### Modern Verilog Implementation Addresses Legacy Opencores Limitations
 
@@ -52,7 +52,7 @@ Recognizing that adopting new IP cores can be challenging, IObundle offers profe
 
 ### Open Source with Permissive Licensing
 
-IOb-Eth is released under the permissive MIT License, allowing unrestricted use in both commercial and non-commercial projects. The complete source code, documentation, and integration examples are available on GitHub.
+IOb-Eth is released under the GPL-3.0 License. The complete source code, documentation, and integration examples are available on GitHub.
 
 ### Part of NGI-Funded OpenCryptoTester and SoCLinux Initiative
 
@@ -75,7 +75,7 @@ For press inquiries, please visit: https://www.iobundle.com
 ---
 
 **Technical Specifications:**
-- License: MIT
+- License: GPL-3.0
 - Interface: AXI memory interface, Standard Ethernet PHY
 - Verification: Verilator-based simulation and coverage flow
 - Documentation: Comprehensive user guide and API documentation
