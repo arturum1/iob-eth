@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# SPDX-FileCopyrightText: 2025 IObundle
+# SPDX-FileCopyrightText: 2026 IObundle
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-only
 
 # Script to relay raw ethernet frames from a network device to a file, and
 # vice-versa. This allows ethernet access for the simulation tesbench.
