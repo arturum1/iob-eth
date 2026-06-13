@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# SPDX-FileCopyrightText: 2025 IObundle
+# SPDX-FileCopyrightText: 2026 IObundle
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-only
 
 # Script to relay raw ethernet frames from a network device to a file, and
 # vice-versa. This allows ethernet access for the simulation tesbench.
@@ -47,7 +47,8 @@ def eth_2_file(socket_object, file_object, mac_filter=None):
 
 def file_2_eth_thread(socket_object, fifo_file_path):
     # With a name pipe, we don't need keep polling and deleting chars from the file
-    os.mkfifo(fifo_file_path)
+    if not os.path.exists(fifo_file_path):
+        os.mkfifo(fifo_file_path)
     with open(fifo_file_path, "rb") as input_file:
         file_2_eth(socket_object, input_file)
 
