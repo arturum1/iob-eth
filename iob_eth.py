@@ -12,6 +12,7 @@ from gen_custom_config_build import gen_custom_config_build
 
 
 def setup(py_params_dict):
+    PLIC_SOURCE_ID = py_params_dict.get("plic_source_id", 1)
     CSR_IF = py_params_dict["csr_if"] if "csr_if" in py_params_dict else "iob"
     VERSION = "0.1.0"
     gen_custom_config_build(py_params_dict)
@@ -75,77 +76,77 @@ def setup(py_params_dict):
             # Macros
             {
                 "name": "PREAMBLE",
+                "descr": "Ethernet packet preamble value",
                 "type": "M",
                 "val": "8'h55",
                 "min": "NA",
                 "max": "NA",
-                "descr": "Ethernet packet preamble value",
             },
             {
                 "name": "PREAMBLE_LEN",
+                "descr": "Ethernet packet preamble length",
                 "type": "M",
                 "val": "7",  # Should it be 7 + 2 bytes to align data transfers?
                 "max": "NA",
                 "min": "NA",
-                "descr": "Ethernet packet preamble length",
             },
             {
                 "name": "SFD",
+                "descr": "Start Frame Delimiter",
                 "type": "M",
                 "val": "8'hD5",
                 "min": "NA",
                 "max": "NA",
-                "descr": "Start Frame Delimiter",
             },
             {
                 "name": "MAC_ADDR_LEN",
+                "descr": "Ethernet MAC address length",
                 "type": "M",
                 "val": "6",
                 "min": "NA",
                 "max": "NA",
-                "descr": "Ethernet MAC address length",
             },
             # Parameters
             {
                 "name": "DATA_W",
+                "descr": "Data bus width",
                 "type": "P",
                 "val": "32",
                 "min": "NA",
                 "max": "128",
-                "descr": "Data bus width",
             },
             # External memory interface
             {
                 "name": "AXI_ID_W",
+                "descr": "AXI ID bus width",
                 "type": "P",
                 "val": "1",
                 "min": "0",
                 "max": "32",
-                "descr": "AXI ID bus width",
             },
             {
                 "name": "AXI_ADDR_W",
+                "descr": "AXI address bus width",
                 "type": "P",
                 "val": "24",
                 "min": "1",
                 "max": "32",
-                "descr": "AXI address bus width",
             },
             {
                 "name": "AXI_DATA_W",
+                "descr": "AXI data bus width",
                 "type": "P",
                 "val": "32",
                 "min": "1",
                 "max": "32",
-                "descr": "AXI data bus width",
             },
             {
                 "name": "AXI_LEN_W",
+                "descr": "AXI burst length width",
                 "type": "P",
                 "val": "4",
                 "min": "1",
                 "max": "4",
-                "descr": "AXI burst length width",
             },
             # Ethernet
             {
@@ -159,19 +160,19 @@ def setup(py_params_dict):
             },
             {
                 "name": "BD_NUM_LOG2",
+                "descr": "Log2 amount of buffer descriptors",
                 "type": "P",
                 "val": "7",
                 "min": "NA",
                 "max": "7",
-                "descr": "Log2 amount of buffer descriptors",
             },
             {
                 "name": "BUFFER_W",
+                "descr": "Buffer size",
                 "type": "P",
                 "val": "11",
                 "min": "0",
                 "max": "32",
-                "descr": "Buffer size",
             },
         ],
         "ports": [
@@ -320,9 +321,12 @@ def setup(py_params_dict):
                 "name": "int_source",
                 "descr": "",
                 "signals": [
-                    {"name": "int_source_wr", "width": 32},
-                    {"name": "int_source_rd", "width": 32},
-                    {"name": "int_source_wstrb", "width": 32 // 8},
+                    {"name": "int_source_valid_wrrd", "width": 1},
+                    {"name": "int_source_wdata_wrrd", "width": 32},
+                    {"name": "int_source_wstrb_wrrd", "width": 4},
+                    {"name": "int_source_ready_wrrd", "width": 1},
+                    {"name": "int_source_rdata_wrrd", "width": 32},
+                    {"name": "int_source_rvalid_wrrd", "width": 1},
                 ],
             },
             {
@@ -607,6 +611,24 @@ def setup(py_params_dict):
                 ],
             },
             # MII management
+            {
+                "name": "mii_reg",
+                "signals": [
+                    {"name": "miimoder_wr"},  # mii_moder_i
+                    {"name": "miicommand_wr"},  # miicommand_i
+                    {"name": "miiaddress_wr"},  # miiaddress_i
+                    {"name": "miitx_data_wr"},  # miitx_data_i
+                ],
+            },
+            {
+                "name": "mii_status",
+                "signals": [
+                    # Data/status output
+                    {"name": "mii_miirx_data", "width": 32},  # miirx_data_o
+                    {"name": "mii_miistatus", "width": 32},  # miistatus_o
+                    {"name": "mii_miicommand_clr", "width": 1},  # miicommand_clr_o
+                ],
+            },
             {
                 "name": "mii_management",
                 "signals": [
@@ -948,192 +970,193 @@ def setup(py_params_dict):
                             {
                                 # NOTE: The Linux ethmac driver from opencores does not support half-duplex. Only full-duplex. Therefore there is no need to implement half-duplex mode.
                                 "name": "moder",
+                                "descr": "Mode Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 40960,
                                 "addr": 0,
                                 "log2n_items": 0,
-                                "descr": "Mode Register",
                             },
                             {
                                 "name": "int_source",
+                                "descr": "Interrupt Source Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 4,
                                 "log2n_items": 0,
-                                "descr": "Interrupt Source Register",
+                                "type": "NOAUTO",
                             },
                             {
                                 "name": "int_mask",
+                                "descr": "Interrupt Mask Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 8,
                                 "log2n_items": 0,
-                                "descr": "Interrupt Mask Register",
                             },
                             {
                                 "name": "ipgt",
+                                "descr": "Back to Back Inter Packet Gap Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 18,
                                 "addr": 12,
                                 "log2n_items": 0,
-                                "descr": "Back to Back Inter Packet Gap Register",
                             },
                             {
                                 "name": "ipgr1",
+                                "descr": "Non Back to Back Inter Packet Gap Register 1",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 12,
                                 "addr": 16,
                                 "log2n_items": 0,
-                                "descr": "Non Back to Back Inter Packet Gap Register 1",
                             },
                             {
                                 "name": "ipgr2",
+                                "descr": "Non Back to Back Inter Packet Gap Register 2",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 18,
                                 "addr": 20,
                                 "log2n_items": 0,
-                                "descr": "Non Back to Back Inter Packet Gap Register 2",
                             },
                             {
                                 "name": "packetlen",
+                                "descr": "Packet Length (minimum and maximum) Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 4195840,
                                 "addr": 24,
                                 "log2n_items": 0,
-                                "descr": "Packet Length (minimum and maximum) Register",
                             },
                             {
                                 "name": "collconf",
+                                "descr": "Collision and Retry Configuration",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 61443,
                                 "addr": 28,
                                 "log2n_items": 0,
-                                "descr": "Collision and Retry Configuration",
                             },
                             {
                                 "name": "tx_bd_num",
+                                "descr": "Transmit Buffer Descriptor Number",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 64,
                                 "addr": 32,
                                 "log2n_items": 0,
-                                "descr": "Transmit Buffer Descriptor Number",
                             },
                             {
                                 "name": "ctrlmoder",
+                                "descr": "Control Module Mode Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 36,
                                 "log2n_items": 0,
-                                "descr": "Control Module Mode Register",
                             },
                             {
                                 "name": "miimoder",
+                                "descr": "MII Mode Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 100,
                                 "addr": 40,
                                 "log2n_items": 0,
-                                "descr": "MII Mode Register",
                             },
                             {
                                 "name": "miicommand",
+                                "descr": "MII Command Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 44,
                                 "log2n_items": 0,
-                                "descr": "MII Command Register",
                             },
                             {
                                 "name": "miiaddress",
+                                "descr": "MII Address Register. Contains the PHY address and the register within the PHY address",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 48,
                                 "log2n_items": 0,
-                                "descr": "MII Address Register. Contains the PHY address and the register within the PHY address",
                             },
                             {
                                 "name": "miitx_data",
+                                "descr": "MII Transmit Data. The data to be transmitted to the PHY",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 52,
                                 "log2n_items": 0,
-                                "descr": "MII Transmit Data. The data to be transmitted to the PHY",
                             },
                             {
                                 "name": "miirx_data",
+                                "descr": "MII Receive Data. The data received from the PHY",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 56,
                                 "log2n_items": 0,
-                                "descr": "MII Receive Data. The data received from the PHY",
                             },
                             {
                                 "name": "miistatus",
+                                "descr": "MII Status Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 60,
                                 "log2n_items": 0,
-                                "descr": "MII Status Register",
                             },
                             {
                                 "name": "mac_addr0",
+                                "descr": "MAC Individual Address0. The LSB four bytes of the individual address are written to this register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 64,
                                 "log2n_items": 0,
-                                "descr": "MAC Individual Address0. The LSB four bytes of the individual address are written to this register",
                             },
                             {
                                 "name": "mac_addr1",
+                                "descr": "MAC Individual Address1. The MSB two bytes of the individual address are written to this register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 68,
                                 "log2n_items": 0,
-                                "descr": "MAC Individual Address1. The MSB two bytes of the individual address are written to this register",
                             },
                             {
                                 "name": "eth_hash0_adr",
+                                "descr": "HASH0 Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 72,
                                 "log2n_items": 0,
-                                "descr": "HASH0 Register",
                             },
                             {
                                 "name": "eth_hash1_adr",
+                                "descr": "HASH1 Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 76,
                                 "log2n_items": 0,
-                                "descr": "HASH1 Register",
                             },
                             {
                                 "name": "eth_txctrl",
+                                "descr": "Transmit Control Register",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 80,
                                 "log2n_items": 0,
-                                "descr": "Transmit Control Register",
                             },
                         ],
                     },
@@ -1143,63 +1166,63 @@ def setup(py_params_dict):
                         "regs": [
                             {
                                 "name": "tx_bd_cnt",
+                                "descr": "Buffer descriptor number of current TX frame",
                                 "mode": "R",
                                 "n_bits": "BD_NUM_LOG2",
                                 "rst_val": 0,
                                 "addr": 84,
                                 "log2n_items": 0,
                                 "type": "NOAUTO",
-                                "descr": "Buffer descriptor number of current TX frame",
                             },
                             {
                                 "name": "rx_bd_cnt",
+                                "descr": "Buffer descriptor number of current RX frame",
                                 "mode": "R",
                                 "n_bits": "BD_NUM_LOG2",
                                 "rst_val": 0,
                                 "addr": 88,
                                 "log2n_items": 0,
                                 "type": "NOAUTO",
-                                "descr": "Buffer descriptor number of current RX frame",
                             },
                             {
                                 "name": "tx_word_cnt",
+                                "descr": "Word number of current TX frame",
                                 "mode": "R",
                                 "n_bits": "BUFFER_W",
                                 "rst_val": 0,
                                 "addr": 92,
                                 "log2n_items": 0,
                                 "type": "NOAUTO",
-                                "descr": "Word number of current TX frame",
                             },
                             {
                                 "name": "rx_word_cnt",
+                                "descr": "Word number of current RX frame",
                                 "mode": "R",
                                 "n_bits": "BUFFER_W",
                                 "rst_val": 0,
                                 "addr": 96,
                                 "log2n_items": 0,
                                 "type": "NOAUTO",
-                                "descr": "Word number of current RX frame",
                             },
                             {
                                 "name": "rx_nbytes",
+                                "descr": "Size of received frame in bytes. Will be zero if no frame has been received. Will reset to zero when cpu completes reading the frame.",
                                 "mode": "R",
                                 "n_bits": "BUFFER_W",
                                 "rst_val": 0,
                                 "addr": 100,
                                 "log2n_items": 0,
                                 "type": "NOAUTO",
-                                "descr": "Size of received frame in bytes. Will be zero if no frame has been received. Will reset to zero when cpu completes reading the frame.",
                             },
                             {
                                 "name": "frame_word",
+                                "descr": "Frame word to transfer to/from buffer",
                                 "mode": "RW",
                                 "n_bits": 8,
                                 "rst_val": 0,
                                 "addr": 104,
                                 "log2n_items": 0,
                                 "type": "NOAUTO",
-                                "descr": "Frame word to transfer to/from buffer",
                             },
                         ],
                     },
@@ -1209,12 +1232,12 @@ def setup(py_params_dict):
                         "regs": [
                             {
                                 "name": "phy_rst_val",
+                                "descr": "Current PHY reset signal value",
                                 "mode": "R",
                                 "n_bits": 1,
                                 "rst_val": 0,
                                 "addr": 108,
                                 "log2n_items": 0,
-                                "descr": "Current PHY reset signal value",
                             },
                         ],
                     },
@@ -1224,13 +1247,13 @@ def setup(py_params_dict):
                         "regs": [
                             {
                                 "name": "bd",
+                                "descr": "Buffer descriptors",
                                 "mode": "RW",
                                 "n_bits": 32,
                                 "rst_val": 0,
                                 "addr": 1024,
                                 "log2n_items": "BD_NUM_LOG2+1",
                                 "type": "NOAUTO",
-                                "descr": "Buffer descriptors",
                             },
                         ],
                     },
@@ -1401,6 +1424,8 @@ def setup(py_params_dict):
                 "instance_description": "Controls MII management signals.",
                 "connect": {
                     "clk_en_rst_s": "clk_en_rst_s",
+                    "mii_reg_i": "mii_reg",
+                    "mii_status_o": "mii_status",
                     "management_io": "mii_management",
                 },
             },
@@ -1431,14 +1456,28 @@ def setup(py_params_dict):
             },
             {
                 "core_name": "iob_linux_device_drivers",
+                # Extra device tree properties specific to this peripheral
+                "dts_extra_properties": f"""
+        interrupt-parent = < &PLIC0 >; // PLIC phandle (matches PLIC peripheral name in system's DT)
+        interrupts = <{PLIC_SOURCE_ID}>; // PLIC source ID
+""",
             },
         ],
         "snippets": [
             {
                 "verilog_code": """
-   // Connect write outputs to read
+   reg  [31:0] int_source_reg;
+
+   // Interrupt events
+   reg         tx_irq_dly;
+   reg         rx_irq_dly;
+   wire        tx_frame_event;
+   wire        rx_frame_event;
+   wire [31:0] int_source_set_val;
+
+   // Connect write outputs to read (loopback for SW-writable registers)
    assign moder_rd         = moder_wr;
-   assign int_source_rd    = int_source_wr;
+   assign int_source_rd    = int_source_reg;
    assign int_mask_rd      = int_mask_wr;
    assign ipgt_rd          = ipgt_wr;
    assign ipgr1_rd         = ipgr1_wr;
@@ -1448,20 +1487,20 @@ def setup(py_params_dict):
    assign tx_bd_num_rd     = tx_bd_num_wr;
    assign ctrlmoder_rd     = ctrlmoder_wr;
    assign miimoder_rd      = miimoder_wr;
-   assign miicommand_rd    = miicommand_wr;
+   assign miicommand_rd    = mii_miicommand_clr ? 32'd0 : miicommand_wr;
    assign miiaddress_rd    = miiaddress_wr;
    assign miitx_data_rd    = miitx_data_wr;
-   assign miirx_data_rd    = miirx_data_wr;
-   assign miistatus_rd     = miistatus_wr;
+   // miirx_data and miistatus readback come from MII management module
+   assign miirx_data_rd    = mii_miirx_data;
+   assign miistatus_rd     = mii_miistatus;
    assign mac_addr0_rd     = mac_addr0_wr;
    assign mac_addr1_rd     = mac_addr1_wr;
    assign eth_hash0_adr_rd = eth_hash0_adr_wr;
    assign eth_hash1_adr_rd = eth_hash1_adr_wr;
    assign eth_txctrl_rd    = eth_txctrl_wr;
 
-   // signals are never written from core
+   // Core-to-CSR write paths (core can update some registers)
    assign moder_wstrb         = 4'h0;
-   assign int_source_wstrb    = 4'h0;
    assign int_mask_wstrb      = 4'h0;
    assign ipgt_wstrb          = 4'h0;
    assign ipgr1_wstrb         = 4'h0;
@@ -1471,7 +1510,8 @@ def setup(py_params_dict):
    assign tx_bd_num_wstrb     = 4'h0;
    assign ctrlmoder_wstrb     = 4'h0;
    assign miimoder_wstrb      = 4'h0;
-   assign miicommand_wstrb    = 4'h0;
+   // miicommand is self-cleared by MII management (MII module writes 0 to CSR)
+   assign miicommand_wstrb          = mii_miicommand_clr ? 4'hf : 4'h0;
    assign miiaddress_wstrb    = 4'h0;
    assign miitx_data_wstrb    = 4'h0;
    assign miirx_data_wstrb    = 4'h0;
@@ -1498,8 +1538,46 @@ def setup(py_params_dict):
    assign phy_rstn_o     = ~phy_rst;
    assign phy_rst_val_rd = phy_rst;
 
-   // DMA
-   assign inta_o = rx_irq | tx_irq;
+   // Interrupt controller
+   // Edge detection on tx_irq / rx_irq (DT outputs are level)
+   always @(posedge clk_i, posedge arst_i) begin
+      if (arst_i) begin
+         tx_irq_dly <= 1'b0;
+         rx_irq_dly <= 1'b0;
+      end else if (cke_i) begin
+         tx_irq_dly <= tx_irq;
+         rx_irq_dly <= rx_irq;
+      end
+   end
+   assign tx_frame_event = tx_irq & ~tx_irq_dly;
+   assign rx_frame_event = rx_irq & ~rx_irq_dly;
+
+   // Hardware events to set in int_source
+   // bit 0: TXF (frame transmitted)
+   // bit 1: TXE (transmit error) - not used yet
+   // bit 2: RXF (frame received)
+   // bit 3: RXE (receive error) - not used yet
+   // bit 4: BUSY (MII busy) - not used as event
+   assign int_source_set_val = {27'd0, 1'b0, 1'b0, rx_frame_event, 1'b0, tx_frame_event};
+
+   // int_source register: write-1-to-clear + HW event OR-in
+   assign int_source_ready_wrrd  = 1'b1;
+   assign int_source_rdata_wrrd  = int_source_reg;
+   assign int_source_rvalid_wrrd = int_source_valid_wrrd & ~(|int_source_wstrb_wrrd);
+
+   always @(posedge clk_i, posedge arst_i) begin
+      if (arst_i)
+         int_source_reg <= 32'd0;
+      else if (cke_i) begin
+         if (int_source_valid_wrrd && |int_source_wstrb_wrrd)
+            int_source_reg <= (int_source_reg & ~int_source_wdata_wrrd) | int_source_set_val;
+         else
+            int_source_reg <= int_source_reg | int_source_set_val;
+      end
+   end
+
+   // Combined interrupt output: masked int_source
+   assign inta_o = |(int_source_reg & int_mask_wr);
 
    assign tx_ram_at2p_en = 1'b1;
    assign bd_ram_port_a_addr = bd_addr_wrrd[2+:(BD_NUM_LOG2+1)];

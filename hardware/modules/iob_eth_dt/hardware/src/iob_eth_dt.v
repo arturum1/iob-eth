@@ -37,16 +37,16 @@ module iob_eth_dt #(
       // LSB priority: "LOW", "HIGH"
       .LSB_PRIORITY("LOW")
    ) bd_mem_arbiter (
-      .clk (clk_i),
-      .arst(arst_i),
-      .rst (1'b0),
+       .clk (clk_i),
+       .arst(arst_i),
+       .rst (1'b0),
 
-      .request    (bd_mem_arbiter_req),
-      .acknowledge(bd_mem_arbiter_ack),
+       .request    (bd_mem_arbiter_req),
+       .acknowledge(bd_mem_arbiter_ack),
 
-      .grant        (bd_mem_arbiter_grant),
-      .grant_valid  (bd_mem_arbiter_grant_valid),
-      .grant_encoded(bd_mem_arbiter_grant_encoded)
+       .grant        (bd_mem_arbiter_grant),
+       .grant_valid  (bd_mem_arbiter_grant_valid),
+       .grant_encoded(bd_mem_arbiter_grant_encoded)
    );
 
    assign bd_mem_arbiter_ack = bd_mem_arbiter_grant & {2{bd_mem_arbiter_grant_valid}};
@@ -95,11 +95,11 @@ module iob_eth_dt #(
       .DATA_W (4),
       .RST_VAL(8)
    ) tx_state_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(tx_state_nxt),
-      .data_o(tx_state)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(tx_state_nxt),
+       .data_o(tx_state)
    );
 
    reg  [32-1:0] tx_buffer_byte_counter_nxt;
@@ -108,11 +108,11 @@ module iob_eth_dt #(
       .DATA_W (32),
       .RST_VAL(0)
    ) tx_buffer_byte_counter_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(tx_buffer_byte_counter_nxt),
-      .data_o(tx_buffer_byte_counter)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(tx_buffer_byte_counter_nxt),
+       .data_o(tx_buffer_byte_counter)
    );
 
    reg  [BD_ADDR_W-2:0] tx_bd_num_nxt;
@@ -121,11 +121,11 @@ module iob_eth_dt #(
       .DATA_W (BD_ADDR_W - 1),
       .RST_VAL(0)
    ) tx_bd_num_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(tx_bd_num_nxt),
-      .data_o(tx_bd_num)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(tx_bd_num_nxt),
+       .data_o(tx_bd_num)
    );
 
    reg  [32-1:0] tx_buffer_descriptor_nxt;
@@ -134,11 +134,11 @@ module iob_eth_dt #(
       .DATA_W (32),
       .RST_VAL(0)
    ) tx_buffer_descriptor_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(tx_buffer_descriptor_nxt),
-      .data_o(tx_buffer_descriptor)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(tx_buffer_descriptor_nxt),
+       .data_o(tx_buffer_descriptor)
    );
 
    wire [15:0] tx_buffer_diff;
@@ -150,11 +150,11 @@ module iob_eth_dt #(
       .DATA_W (AXI_ADDR_W),
       .RST_VAL(0)
    ) tx_buffer_ptr_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(tx_buffer_ptr_nxt),
-      .data_o(tx_buffer_ptr)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(tx_buffer_ptr_nxt),
+       .data_o(tx_buffer_ptr)
    );
 
    reg  [AXI_LEN_W-1:0] axi_arlen_nxt;
@@ -163,11 +163,11 @@ module iob_eth_dt #(
       .DATA_W (AXI_LEN_W),
       .RST_VAL(0)
    ) axi_arlen_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(axi_arlen_nxt),
-      .data_o(axi_arlen)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(axi_arlen_nxt),
+       .data_o(axi_arlen)
    );
    assign axi_arlen_o = axi_arlen_nxt;
 
@@ -177,11 +177,11 @@ module iob_eth_dt #(
       .DATA_W (1),
       .RST_VAL(0)
    ) crc_en_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(crc_en_nxt),
-      .data_o(crc_en)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(crc_en_nxt),
+       .data_o(crc_en)
    );
    assign crc_en_o = crc_en;
 
@@ -191,11 +191,11 @@ module iob_eth_dt #(
       .DATA_W (11),
       .RST_VAL(0)
    ) tx_nbytes_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(tx_nbytes_nxt),
-      .data_o(tx_nbytes)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(tx_nbytes_nxt),
+       .data_o(tx_nbytes)
    );
    assign tx_nbytes_o = tx_nbytes;
 
@@ -205,11 +205,11 @@ module iob_eth_dt #(
       .DATA_W (1),
       .RST_VAL(0)
    ) send_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(send_nxt),
-      .data_o(send)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(send_nxt),
+       .data_o(send)
    );
    assign send_o = send;
 
@@ -310,12 +310,13 @@ module iob_eth_dt #(
                if (!axi_arready_i) tx_state_nxt = tx_state;
 
                // Check if frame transfer is complete
-               if (tx_buffer_descriptor[31:16] - tx_buffer_byte_counter[15:0] == 0) begin
+               // Length field from BD bits [31:16] (Linux ethoc compatible format)
+               if ({3'd0, tx_buffer_descriptor[28:16]} - tx_buffer_byte_counter[15:0] == 0) begin
                   axi_arvalid_o_reg = 0;
 
                   // Configure transmitter settings
-                  crc_en_nxt = tx_buffer_descriptor[11];
-                  tx_nbytes_nxt = PRE_FRAME_LEN + tx_buffer_descriptor[26:16]; // 11 bits is enough for frame size
+                  crc_en_nxt = 1'b1;  // Always enable CRC (Linux ethoc driver expects this)
+                  tx_nbytes_nxt = PRE_FRAME_LEN + tx_buffer_descriptor[26:16]; // payload length from BD bits [31:16]
                   send_nxt = 1;
 
                   // Disable ready bit
@@ -386,7 +387,8 @@ module iob_eth_dt #(
                   else tx_bd_num_nxt = 0;
 
                   // Reset BD number if reached maximum
-                  if (tx_buffer_descriptor[13] == 0 && &tx_bd_num) tx_bd_num_nxt = 0;
+                  if (tx_buffer_descriptor[13] == 0 && tx_bd_num == tx_bd_num_i - 1'b1)
+                     tx_bd_num_nxt = 0;
 
                   // Go to next buffer descriptor
                   tx_state_nxt = 0;
@@ -433,11 +435,11 @@ module iob_eth_dt #(
       .DATA_W (3),
       .RST_VAL(0)
    ) rx_state_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_state_nxt),
-      .data_o(rx_state)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_state_nxt),
+       .data_o(rx_state)
    );
 
    reg  [32-1:0] rx_buffer_byte_counter_nxt;
@@ -446,11 +448,11 @@ module iob_eth_dt #(
       .DATA_W (32),
       .RST_VAL(0)
    ) rx_buffer_byte_counter_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_buffer_byte_counter_nxt),
-      .data_o(rx_buffer_byte_counter)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_buffer_byte_counter_nxt),
+       .data_o(rx_buffer_byte_counter)
    );
 
    wire [11-1:0] rx_buffer_diff;
@@ -462,11 +464,11 @@ module iob_eth_dt #(
       .DATA_W (BD_ADDR_W - 1),
       .RST_VAL({1'b1, {(BD_ADDR_W - 2) {1'b0}}})  // 2nd half of BD_ADDR_W range
    ) rx_bd_num_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_bd_num_nxt),
-      .data_o(rx_bd_num)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_bd_num_nxt),
+       .data_o(rx_bd_num)
    );
 
    reg  [AXI_LEN_W-1:0] rx_burst_word_num_nxt;
@@ -475,11 +477,11 @@ module iob_eth_dt #(
       .DATA_W (AXI_LEN_W),
       .RST_VAL(0)
    ) rx_burst_word_num_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_burst_word_num_nxt),
-      .data_o(rx_burst_word_num)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_burst_word_num_nxt),
+       .data_o(rx_burst_word_num)
    );
 
    reg  [32-1:0] rx_buffer_descriptor_nxt;
@@ -488,11 +490,11 @@ module iob_eth_dt #(
       .DATA_W (32),
       .RST_VAL(0)
    ) rx_buffer_descriptor_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_buffer_descriptor_nxt),
-      .data_o(rx_buffer_descriptor)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_buffer_descriptor_nxt),
+       .data_o(rx_buffer_descriptor)
    );
 
    reg  [AXI_ADDR_W-1:0] rx_buffer_ptr_nxt;
@@ -501,11 +503,11 @@ module iob_eth_dt #(
       .DATA_W (AXI_ADDR_W),
       .RST_VAL(0)
    ) rx_buffer_ptr_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_buffer_ptr_nxt),
-      .data_o(rx_buffer_ptr)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_buffer_ptr_nxt),
+       .data_o(rx_buffer_ptr)
    );
 
    reg  [AXI_LEN_W-1:0] axi_awlen_nxt;
@@ -514,11 +516,11 @@ module iob_eth_dt #(
       .DATA_W (AXI_LEN_W),
       .RST_VAL(0)
    ) axi_awlen_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(axi_awlen_nxt),
-      .data_o(axi_awlen)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(axi_awlen_nxt),
+       .data_o(axi_awlen)
    );
    assign axi_awlen_o = axi_awlen_nxt;
 
@@ -528,11 +530,11 @@ module iob_eth_dt #(
       .DATA_W (1),
       .RST_VAL(0)
    ) rcv_ack_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rcv_ack_nxt),
-      .data_o(rcv_ack)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rcv_ack_nxt),
+       .data_o(rcv_ack)
    );
    assign rcv_ack_o = rcv_ack;
 
@@ -541,11 +543,11 @@ module iob_eth_dt #(
       .DATA_W (8),
       .RST_VAL(0)
    ) rx_frame_word_rdata_o_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_frame_word_rdata_o_nxt),
-      .data_o(rx_frame_word_rdata_o)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_frame_word_rdata_o_nxt),
+       .data_o(rx_frame_word_rdata_o)
    );
 
    reg rx_frame_word_rvalid_o_nxt;
@@ -553,11 +555,11 @@ module iob_eth_dt #(
       .DATA_W (1),
       .RST_VAL(0)
    ) rx_frame_word_rvalid_o_reg (
-      .clk_i (clk_i),
-      .cke_i (cke_i),
-      .arst_i(arst_i),
-      .data_i(rx_frame_word_rvalid_o_nxt),
-      .data_o(rx_frame_word_rvalid_o)
+       .clk_i (clk_i),
+       .cke_i (cke_i),
+       .arst_i(arst_i),
+       .data_i(rx_frame_word_rvalid_o_nxt),
+       .data_o(rx_frame_word_rvalid_o)
    );
 
    always @* begin
@@ -743,9 +745,16 @@ module iob_eth_dt #(
                rx_state_nxt = rx_state;
 
                rx_bd_addr_o = rx_bd_num << 1;
-               rx_bd_wen_o  = 1;
-               rx_bd_o      = rx_buffer_descriptor;
-               rx_req       = 1;
+               rx_bd_wen_o = 1;
+               // Clear READY bit, set received length in bits [31:16] (Linux ethoc compatible format)
+               rx_bd_o = {
+                  {(16 - BUFFER_W) {1'b0}},
+                  rx_nbytes_i,
+                  1'b0,
+                  rx_buffer_descriptor[14:13],
+                  rx_buffer_descriptor[12:0]
+               };
+               rx_req = 1;
 
                // Wait for arbiter
                if (bd_mem_arbiter_grant[1] && bd_mem_arbiter_grant_valid) begin
