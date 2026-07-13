@@ -174,6 +174,14 @@ def setup(py_params_dict):
                 "min": "0",
                 "max": "32",
             },
+            {  # For iob_iobuf
+                "name": "FPGA_TOOL",
+                "descr": "Use IPs from fpga tool. Avaliable options: 'XILINX', 'other'.",
+                "type": "P",
+                "val": '"other"',
+                "min": "NA",
+                "max": "NA",
+            },
         ],
         "ports": [
             {
@@ -1422,6 +1430,9 @@ def setup(py_params_dict):
                 "core_name": "iob_eth_mii_management",
                 "instance_name": "mii_management",
                 "instance_description": "Controls MII management signals.",
+                "parameters": {
+                    "FPGA_TOOL": "FPGA_TOOL",
+                },
                 "connect": {
                     "clk_en_rst_s": "clk_en_rst_s",
                     "mii_reg_i": "mii_reg",
@@ -1456,11 +1467,32 @@ def setup(py_params_dict):
             },
             {
                 "core_name": "iob_linux_device_drivers",
+                "compatible_str": "opencores,ethoc",
                 # Extra device tree properties specific to this peripheral
                 "dts_extra_properties": f"""
         interrupt-parent = < &PLIC0 >; // PLIC phandle (matches PLIC peripheral name in system's DT)
         interrupts = <{PLIC_SOURCE_ID}>; // PLIC source ID
+        clocks = <&sys_clk>; // Sys clock for Ethernet MII MDIO clock divider
 """,
+                #        clock-names = "mclk";
+                #        clocks = <&clk_eth>;
+                #        phy-mode = "mii";
+                #        phy-handle = <&phy0>;
+                #        local-mac-address = [00 11 22 33 44 55];
+                #        status = "okay";
+                #        clock-names = "mclk";
+                #        clocks = <&clk_eth>;
+                #        phy-mode = "mii";
+                #        status = "okay";
+                #
+                #        mdio {
+                #            #address-cells = <1>;
+                #            #size-cells = <0>;
+                #
+                #            phy0: ethernet-phy@1 {
+                #                reg = <1>;
+                #            };
+                #        };
             },
         ],
         "snippets": [
@@ -1477,7 +1509,6 @@ def setup(py_params_dict):
 
    // Connect write outputs to read (loopback for SW-writable registers)
    assign moder_rd         = moder_wr;
-   assign int_source_rd    = int_source_reg;
    assign int_mask_rd      = int_mask_wr;
    assign ipgt_rd          = ipgt_wr;
    assign ipgr1_rd         = ipgr1_wr;

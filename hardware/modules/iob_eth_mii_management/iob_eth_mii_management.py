@@ -6,6 +6,16 @@
 def setup(py_params_dict):
     attributes_dict = {
         "generate_hw": False,
+        "confs": [
+            {  # For iob_iobuf
+                "name": "FPGA_TOOL",
+                "descr": "Use IPs from fpga tool. Avaliable options: 'XILINX', 'other'.",
+                "type": "P",
+                "val": '"XILINX"',
+                "min": "NA",
+                "max": "NA",
+            },
+        ],
         "ports": [
             {
                 "name": "clk_en_rst_s",
@@ -42,7 +52,12 @@ def setup(py_params_dict):
                 ],
             },
         ],
-        "subblocks": [],
+        "subblocks": [
+            {
+                "core_name": "iob_iobuf",
+                "instantiate": False,
+            },
+        ],
     }
 
     return attributes_dict

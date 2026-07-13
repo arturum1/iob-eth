@@ -3,8 +3,11 @@
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
 `timescale 1ns / 1ps
+`include "iob_eth_mii_management_conf.vh"
 
-module iob_eth_mii_management (
+module iob_eth_mii_management #(
+   `include "iob_eth_mii_management_params.vs"
+) (
    `include "iob_eth_mii_management_io.vs"
 );
 
@@ -44,6 +47,7 @@ module iob_eth_mii_management (
 
    // MDIO output (update on MDC falling edge)
    reg mdio_out;
+   reg mdio_out_nxt;
    always @(posedge clk_i, posedge arst_i) begin
       if (arst_i) mdio_out <= 1'b0;
       else if (cke_i && mdc_fall) mdio_out <= mdio_out_nxt;
@@ -51,18 +55,30 @@ module iob_eth_mii_management (
 
    // MDIO output enable (update on MDC falling edge)
    reg mdio_oe;
+   reg mdio_oe_nxt;
    always @(posedge clk_i, posedge arst_i) begin
       if (arst_i) mdio_oe <= 1'b0;
       else if (cke_i && mdc_fall) mdio_oe <= mdio_oe_nxt;
    end
 
-   assign mii_mdio_io = mdio_oe ? mdio_out : 1'bz;
+   // MDIO input/output via iobuf
+   wire mdio_iobuf_o;
+
+   iob_iobuf #(
+      .FPGA_TOOL(FPGA_TOOL)
+   ) mdio_iobuf_inst (
+       .i_i  (mdio_out),
+       .t_i  (~mdio_oe),
+       .n_i  (1'b0),
+       .o_o  (mdio_iobuf_o),
+       .io_io(mii_mdio_io)
+   );
 
    // MDIO input (sample on MDC rising edge)
    reg mdio_in;
    always @(posedge clk_i, posedge arst_i) begin
       if (arst_i) mdio_in <= 1'b0;
-      else if (cke_i && mdc_rise) mdio_in <= mii_mdio_io;
+      else if (cke_i && mdc_rise) mdio_in <= mdio_iobuf_o;
    end
 
    // Edge detection on miicommand
@@ -78,8 +94,6 @@ module iob_eth_mii_management (
    reg [15:0] data_shift, data_shift_nxt;
    reg [15:0] rx_data, rx_data_nxt;
    reg op_read;
-   reg mdio_out_nxt;
-   reg mdio_oe_nxt;
    reg busy_nxt;
    reg done_pulse;
 
