@@ -1525,7 +1525,7 @@ def setup(py_params_dict):
    assign miitx_data_rd    = miitx_data_wr;
    // miirx_data and miistatus readback come from MII management module
    assign miirx_data_rd    = mii_miirx_data;
-   assign miistatus_rd     = mii_miistatus;
+   assign miistatus_rd     = miistatus_wr;
    assign mac_addr0_rd     = mac_addr0_wr;
    assign mac_addr1_rd     = mac_addr1_wr;
    assign eth_hash0_adr_rd = eth_hash0_adr_wr;
@@ -1547,9 +1547,9 @@ def setup(py_params_dict):
    assign miicommand_wstrb          = mii_miicommand_clr ? 4'hf : 4'h0;
    assign miiaddress_wstrb    = 4'h0;
    assign miitx_data_wstrb    = 4'h0;
-   // miirx_data and miistatus are updated by MII management on frame completion
+   // miirx_data is updated by MII management on frame completion
    assign miirx_data_wstrb    = mii_miicommand_clr ? 4'hf : 4'h0;
-   assign miistatus_wstrb     = mii_miicommand_clr ? 4'hf : 4'h0;
+   assign miistatus_wstrb     = 4'h0;
    assign mac_addr0_wstrb     = 4'h0;
    assign mac_addr1_wstrb     = 4'h0;
    assign eth_hash0_adr_wstrb = 4'h0;
