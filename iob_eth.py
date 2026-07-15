@@ -1547,8 +1547,9 @@ def setup(py_params_dict):
    assign miicommand_wstrb          = mii_miicommand_clr ? 4'hf : 4'h0;
    assign miiaddress_wstrb    = 4'h0;
    assign miitx_data_wstrb    = 4'h0;
-   assign miirx_data_wstrb    = 4'h0;
-   assign miistatus_wstrb     = 4'h0;
+   // miirx_data and miistatus are updated by MII management on frame completion
+   assign miirx_data_wstrb    = mii_miicommand_clr ? 4'hf : 4'h0;
+   assign miistatus_wstrb     = mii_miicommand_clr ? 4'hf : 4'h0;
    assign mac_addr0_wstrb     = 4'h0;
    assign mac_addr1_wstrb     = 4'h0;
    assign eth_hash0_adr_wstrb = 4'h0;
