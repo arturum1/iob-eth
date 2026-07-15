@@ -74,11 +74,11 @@ module iob_eth_mii_management #(
        .io_io(mii_mdio_io)
    );
 
-   // MDIO input (sample on MDC rising edge)
+   // MDIO input (sample on every clock cycle to ensure a direct load on the IBUFCTRL output)
    reg mdio_in;
    always @(posedge clk_i, posedge arst_i) begin
       if (arst_i) mdio_in <= 1'b0;
-      else if (cke_i && mdc_rise) mdio_in <= mdio_iobuf_o;
+      else if (cke_i) mdio_in <= mdio_iobuf_o;
    end
 
    // Edge detection on miicommand
@@ -97,6 +97,18 @@ module iob_eth_mii_management #(
    reg busy_nxt;
    reg done_pulse;
 
+   // Latch start request from single-cycle start_op pulse until consumed
+   // by the state machine on mdc_rise when IDLE (start_op might be missed
+   // if it fires while state != IDLE)
+   reg start_req;
+   always @(posedge clk_i, posedge arst_i) begin
+      if (arst_i) start_req <= 1'b0;
+      else if (cke_i) begin
+         if (start_op) start_req <= 1'b1;
+         else if (state == IDLE && mdc_rise) start_req <= 1'b0;
+      end
+   end
+
    always @* begin
       state_nxt      = state;
       bit_cnt_nxt    = bit_cnt;
@@ -111,7 +123,7 @@ module iob_eth_mii_management #(
       case (state)
          IDLE: begin
             mdio_oe_nxt = 1'b0;
-            if (start_op) begin
+            if (start_req) begin
                state_nxt   = FRAME;
                bit_cnt_nxt = 7'd0;
                if (miicommand_i[2]) data_shift_nxt = miitx_data_i[15:0];
@@ -124,8 +136,8 @@ module iob_eth_mii_management #(
             // 0-31: preamble
             if (bit_cnt <= 31) begin
                mdio_out_nxt = 1'b1;
-               // NOPRE: skip preamble
-               if (miimoder_i[8]) bit_cnt_nxt = 7'd31;
+               // NOPRE: skip preamble (jump to first start bit)
+               if (miimoder_i[8]) bit_cnt_nxt = 7'd32;
                // 32: start "0"
             end else if (bit_cnt == 32) begin
                mdio_out_nxt = 1'b0;
@@ -156,7 +168,7 @@ module iob_eth_mii_management #(
                end
             end
 
-            if (bit_cnt == 63) begin
+            if (bit_cnt == 64) begin
                state_nxt  = DONE;
                done_pulse = 1'b1;
                if (op_read) rx_data_nxt = {rx_data[14:0], mdio_in};
@@ -170,6 +182,8 @@ module iob_eth_mii_management #(
             mdio_oe_nxt = 1'b0;
             state_nxt   = IDLE;
          end
+
+         default: state_nxt = IDLE;
       endcase
    end
 
@@ -186,7 +200,7 @@ module iob_eth_mii_management #(
             bit_cnt    <= bit_cnt_nxt;
             data_shift <= data_shift_nxt;
             rx_data    <= rx_data_nxt;
-         end else if (start_op) begin
+         end else if (start_req) begin
             state   <= FRAME;
             bit_cnt <= 7'd0;
             if (miicommand_i[2]) data_shift <= miitx_data_i[15:0];
@@ -194,15 +208,9 @@ module iob_eth_mii_management #(
       end
    end
 
-   // Busy register (set on start, clear when done)
-   reg busy;
-   always @(posedge clk_i, posedge arst_i) begin
-      if (arst_i) busy <= 1'b0;
-      else if (cke_i) begin
-         if (start_op) busy <= 1'b1;
-         else if (done_pulse) busy <= 1'b0;
-      end
-   end
+   // Busy: combinational — high immediately when a command is received
+   // (start_req) and stays high until the frame finishes (state returns to IDLE)
+   wire busy = (state != IDLE) | start_req;
 
    // Outputs
    assign miirx_data_o     = {16'd0, rx_data};

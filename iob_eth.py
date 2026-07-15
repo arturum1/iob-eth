@@ -1493,6 +1493,8 @@ def setup(py_params_dict):
                 #                reg = <1>;
                 #            };
                 #        };
+                # See: https://github.com/torvalds/linux/blob/master/Documentation/devicetree/bindings/net/opencores-ethoc.txt
+                # FIXME: According to link above, the 'reg' property must have two memory regions specified. The currently generated 'reg' only has one region!
             },
         ],
         "snippets": [
