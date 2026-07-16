@@ -1467,34 +1467,48 @@ def setup(py_params_dict):
             },
             {
                 "core_name": "iob_linux_device_drivers",
+                # The 'compatible' property is set as "opencores,ethoc" to match
+                # the Linux ethoc driver's of_match_table.
                 "compatible_str": "opencores,ethoc",
-                # Extra device tree properties specific to this peripheral
-                "dts_extra_properties": f"""
-        interrupt-parent = < &PLIC0 >; // PLIC phandle (matches PLIC peripheral name in system's DT)
-        interrupts = <{PLIC_SOURCE_ID}>; // PLIC source ID
-        clocks = <&sys_clk>; // Sys clock for Ethernet MII MDIO clock divider
-""",
-                #        clock-names = "mclk";
-                #        clocks = <&clk_eth>;
-                #        phy-mode = "mii";
-                #        phy-handle = <&phy0>;
-                #        local-mac-address = [00 11 22 33 44 55];
-                #        status = "okay";
-                #        clock-names = "mclk";
-                #        clocks = <&clk_eth>;
-                #        phy-mode = "mii";
-                #        status = "okay";
-                #
-                #        mdio {
-                #            #address-cells = <1>;
-                #            #size-cells = <0>;
-                #
-                #            phy0: ethernet-phy@1 {
-                #                reg = <1>;
-                #            };
-                #        };
+                # Extra device tree properties specific to this peripheral.
                 # See: https://github.com/torvalds/linux/blob/master/Documentation/devicetree/bindings/net/opencores-ethoc.txt
-                # FIXME: According to link above, the 'reg' property must have two memory regions specified. The currently generated 'reg' only has one region!
+                #
+                # NOTE: The 'reg' property is auto-generated with a single memory region for the
+                # CSR registers. The opencores,ethoc binding also supports an optional second
+                # memory region for dedicated packet RAM. If your design has a separate memory
+                # region for packet buffers, it should be added as a second entry:
+                #   reg = <BASE_ADDR REG_SIZE PKT_MEM_BASE PKT_MEM_SIZE>;
+                # Without it, the Linux ethoc driver allocates DMA coherent buffers automatically.
+                "dts_extra_properties": f"""
+        // Interrupt parent: phandle to the Platform-Level Interrupt Controller (PLIC).
+        // Must match the PLIC peripheral name in the system device tree.
+        interrupt-parent = < &PLIC0 >;
+        // PLIC source ID for this Ethernet core's interrupt line.
+        interrupts = <{PLIC_SOURCE_ID}>;
+        // System clock reference, used to compute the MII management (MDIO) clock divider.
+        // The driver derives the MDIO clock by dividing this frequency.
+        clocks = <&sys_clk>;
+
+        // --- Optional properties below (uncomment as needed) ---
+
+        // MAC address. If omitted, the driver reads it from hardware registers,
+        // or generates a random address if the registers are also unset.
+        //local-mac-address = [AA BB CC DD EE FF];
+
+        // Reference to an external PHY node (not used when the driver probes
+        // PHYs via MDIO bus scanning, which is the default).
+        //phy-handle = <&phy0>;
+
+        // MDIO bus with PHY children (needed only with phy-handle above).
+        //mdio {{
+        //    #address-cells = <1>;
+        //    #size-cells = <0>;
+        //
+        //    phy0: ethernet-phy@1 {{
+        //        reg = <1>;
+        //    }};
+        //}};
+""",
             },
         ],
         "snippets": [
