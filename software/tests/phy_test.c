@@ -113,8 +113,6 @@ void debug_phy_connection() {
   printf("--- Ethernet PHY Connection Debug Tests Complete ---\n\n");
 }
 
-
-
 int main() {
   // Run PHY connection debug tests
   debug_phy_connection();
