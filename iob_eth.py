@@ -458,9 +458,12 @@ def setup(py_params_dict):
                 "name": "miistatus",
                 "descr": "",
                 "signals": [
-                    {"name": "miistatus_wr", "width": 32},
-                    {"name": "miistatus_rd", "width": 32},
-                    {"name": "miistatus_wstrb", "width": 32 // 8},
+                    {"name": "miistatus_valid_wrrd", "width": 1},
+                    {"name": "miistatus_wdata_wrrd", "width": 32},
+                    {"name": "miistatus_wstrb_wrrd", "width": 4},
+                    {"name": "miistatus_ready_wrrd", "width": 1},
+                    {"name": "miistatus_rdata_wrrd", "width": 32},
+                    {"name": "miistatus_rvalid_wrrd", "width": 1},
                 ],
             },
             {
@@ -1120,6 +1123,7 @@ def setup(py_params_dict):
                                 "rst_val": 0,
                                 "addr": 60,
                                 "log2n_items": 0,
+                                "type": "NOAUTO",
                             },
                             {
                                 "name": "mac_addr0",
@@ -1537,9 +1541,8 @@ def setup(py_params_dict):
    assign miicommand_rd    = mii_miicommand_clr ? 32'd0 : miicommand_wr;
    assign miiaddress_rd    = miiaddress_wr;
    assign miitx_data_rd    = miitx_data_wr;
-   // miirx_data and miistatus readback come from MII management module
-   assign miirx_data_rd    = mii_miirx_data;
-   assign miistatus_rd     = miistatus_wr;
+    // miirx_data readback comes from MII management module
+    assign miirx_data_rd    = mii_miirx_data;
    assign mac_addr0_rd     = mac_addr0_wr;
    assign mac_addr1_rd     = mac_addr1_wr;
    assign eth_hash0_adr_rd = eth_hash0_adr_wr;
@@ -1561,9 +1564,8 @@ def setup(py_params_dict):
    assign miicommand_wstrb          = mii_miicommand_clr ? 4'hf : 4'h0;
    assign miiaddress_wstrb    = 4'h0;
    assign miitx_data_wstrb    = 4'h0;
-   // miirx_data is updated by MII management on frame completion
-   assign miirx_data_wstrb    = mii_miicommand_clr ? 4'hf : 4'h0;
-   assign miistatus_wstrb     = 4'h0;
+    // miirx_data is updated by MII management on frame completion
+    assign miirx_data_wstrb    = mii_miicommand_clr ? 4'hf : 4'h0;
    assign mac_addr0_wstrb     = 4'h0;
    assign mac_addr1_wstrb     = 4'h0;
    assign eth_hash0_adr_wstrb = 4'h0;
@@ -1608,10 +1610,20 @@ def setup(py_params_dict):
    // bit 4: BUSY (MII busy) - not used as event
    assign int_source_set_val = {27'd0, 1'b0, 1'b0, rx_frame_event, 1'b0, tx_frame_event};
 
-   // int_source register: write-1-to-clear + HW event OR-in
-   assign int_source_ready_wrrd  = 1'b1;
-   assign int_source_rdata_wrrd  = int_source_reg;
-   assign int_source_rvalid_wrrd = int_source_valid_wrrd & ~(|int_source_wstrb_wrrd);
+    // int_source register: write-1-to-clear + HW event OR-in
+    assign int_source_ready_wrrd  = 1'b1;
+    assign int_source_rdata_wrrd  = int_source_reg;
+
+    // Register rvalid to persist through WAIT_RVALID (same pattern as tx_bd_cnt)
+    wire int_source_rvalid_nxt = int_source_valid_wrrd & ~(|int_source_wstrb_wrrd);
+    reg  int_source_rvalid_wrrd_reg;
+    always @(posedge clk_i, posedge arst_i) begin
+       if (arst_i)
+          int_source_rvalid_wrrd_reg <= 1'b0;
+       else if (cke_i)
+          int_source_rvalid_wrrd_reg <= int_source_rvalid_nxt;
+    end
+    assign int_source_rvalid_wrrd = int_source_rvalid_wrrd_reg;
 
    always @(posedge clk_i, posedge arst_i) begin
       if (arst_i)
@@ -1624,10 +1636,25 @@ def setup(py_params_dict):
       end
    end
 
-   // Combined interrupt output: masked int_source
-   assign inta_o = |(int_source_reg & int_mask_wr);
+    // Combined interrupt output: masked int_source
+    assign inta_o = |(int_source_reg & int_mask_wr);
 
-   assign tx_ram_at2p_en = 1'b1;
+    // miistatus: direct readback from MII management hardware (no register)
+    assign miistatus_ready_wrrd  = 1'b1;
+    assign miistatus_rdata_wrrd  = mii_miistatus;
+
+    // Register rvalid to persist through WAIT_RVALID (same pattern as tx_bd_cnt)
+    wire miistatus_rvalid_nxt = miistatus_valid_wrrd & ~(|miistatus_wstrb_wrrd);
+    reg  miistatus_rvalid_wrrd_reg;
+    always @(posedge clk_i, posedge arst_i) begin
+       if (arst_i)
+          miistatus_rvalid_wrrd_reg <= 1'b0;
+       else if (cke_i)
+          miistatus_rvalid_wrrd_reg <= miistatus_rvalid_nxt;
+    end
+    assign miistatus_rvalid_wrrd = miistatus_rvalid_wrrd_reg;
+
+    assign tx_ram_at2p_en = 1'b1;
    assign bd_ram_port_a_addr = bd_addr_wrrd[2+:(BD_NUM_LOG2+1)];
    assign dt_csrs_control_rx_en = moder_wr[0];
    assign dt_csrs_control_tx_en = moder_wr[1];

@@ -171,7 +171,6 @@ module iob_eth_mii_management #(
             if (bit_cnt == 64) begin
                state_nxt  = DONE;
                done_pulse = 1'b1;
-               if (op_read) rx_data_nxt = {rx_data[14:0], mdio_in};
             end else begin
                bit_cnt_nxt = bit_cnt + 1'b1;
                if (op_read && bit_cnt >= 48) rx_data_nxt = {rx_data[14:0], mdio_in};

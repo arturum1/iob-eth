@@ -4,6 +4,9 @@
 
 // Simulation-only Clause 22 MDIO PHY model.
 // Responds to read/write transactions on the MDIO bus when PHY_ADDR matches.
+// Output is driven on negedge MDC per IEEE 802.3 Clause 22:
+// "The PMA shall not update the MDIO output signal until after the falling
+//  edge of MDC."
 
 `timescale 1ns / 1ps
 
@@ -48,12 +51,12 @@ module iob_phy_model #(
 
     assign mdio_io = mdio_oe ? (mdio_out ? 1'b1 : 1'b0) : 1'bz;
 
+    // Posedge: state machine and input sampling
     always @(posedge mdc_i) begin
         mdio_d1 <= mdio_io;
 
         if (!in_frame) begin
             bit_cnt <= 7'd0;
-            mdio_oe <= 1'b0;
             match   <= 1'b0;
 
             if (mdio_d1 && !mdio_io) begin
@@ -86,28 +89,13 @@ module iob_phy_model #(
                 7'd11: reg_addr[1] <= mdio_io;        // controller bc=44
                 7'd12: reg_addr[0] <= mdio_io;        // controller bc=45
 
-                7'd13: begin                          // controller bc=46 (first TA)
+                7'd13: begin                          // controller bc=46
                     if (match && op_read) rd_shift <= regs[reg_addr];
-                end
-                7'd14: begin                          // controller bc=47 (second TA)
-                    if (match && op_read) begin
-                        $display("PHY_TRACE t=%0t cas14 DRIVE_TA", $time);
-                        mdio_out <= 1'b0;
-                        mdio_oe  <= 1'b1;
-                    end else begin
-                        $display("PHY_TRACE t=%0t cas14 SKIP_TA op_read=%d", $time, op_read);
-                    end
                 end
 
                 default: begin
-                    if (bit_cnt >= 7'd15 && bit_cnt <= 7'd30) begin  // data (controller bc=48-63)
-                        if (match && op_read) begin
-                            if (bit_cnt == 7'd15 || bit_cnt == 7'd30)
-                                $display("PHY_TRACE t=%0t READ_DATA bc=%d rd_shift[15]=%d", $time, bit_cnt, rd_shift[15]);
-                            mdio_out <= rd_shift[15];
-                            mdio_oe  <= 1'b1;
-                            rd_shift <= {rd_shift[14:0], 1'b0};
-                        end
+                    // Write data sample (controller bc=48-63)
+                    if (bit_cnt >= 7'd15 && bit_cnt <= 7'd30) begin
                         if (match && !op_read) begin
                             if (bit_cnt == 7'd15 || bit_cnt == 7'd30)
                                 $display("PHY_TRACE t=%0t WRITE_DATA bc=%d mdio_io=%d", $time, bit_cnt, mdio_io);
@@ -118,7 +106,6 @@ module iob_phy_model #(
                     if (bit_cnt == 7'd31) begin       // end frame (controller bc=64)
                         $display("PHY_TRACE t=%0t cas31 END_FRAME op_read=%d reg_addr=%d match=%d", $time, op_read, reg_addr, match);
                         in_frame <= 1'b0;
-                        mdio_oe  <= 1'b0;
                         if (match && !op_read) begin
                             regs[reg_addr] <= rd_shift;
                             $display("PHY_TRACE t=%0t cas31 WRITE reg[%d] <= 0x%04h", $time, reg_addr, rd_shift);
@@ -126,6 +113,31 @@ module iob_phy_model #(
                     end
                 end
             endcase
+        end
+    end
+
+    // Negedge: drive outputs per Clause 22 (PHY updates MDIO on falling edge of MDC).
+    // At negedge, bit_cnt has already been incremented by NBA from the preceding
+    // posedge, so bit_cnt maps to controller bc as: negedge_bit_cnt = posedge_case + 1.
+    // This means: negedge bit_cnt=14 (after posedge case 13) = controller bc=47,
+    // negedge bit_cnt=15 (after posedge case 14) = controller bc=48, etc.
+    always @(negedge mdc_i) begin
+        if (in_frame && match && op_read) begin
+            if (bit_cnt == 7'd14) begin               // controller bc=47 (TA: drive 0)
+                mdio_out <= 1'b0;
+                mdio_oe  <= 1'b1;
+                $display("PHY_TRACE t=%0t negedge DRIVE_TA", $time);
+            end else if (bit_cnt >= 7'd15 && bit_cnt <= 7'd30) begin  // D15-D0
+                if (bit_cnt == 7'd15 || bit_cnt == 7'd30)
+                    $display("PHY_TRACE t=%0t negedge READ_DATA bc=%d rd_shift[15]=%d", $time, bit_cnt, rd_shift[15]);
+                mdio_out <= rd_shift[15];
+                mdio_oe  <= 1'b1;
+                rd_shift <= {rd_shift[14:0], 1'b0};
+            end else begin
+                mdio_oe <= 1'b0;
+            end
+        end else begin
+            mdio_oe <= 1'b0;
         end
     end
 
