@@ -1492,6 +1492,9 @@ def setup(py_params_dict):
         // System clock reference, used to compute the MII management (MDIO) clock divider.
         // The driver derives the MDIO clock by dividing this frequency.
         clocks = <&sys_clk>;
+        // PHY interface mode. Must match the hardware wiring.
+        // Options: "mii", "rmii", "rgmii", "rgmii-id", "rgmii-rxid", "rgmii-txid", "gmii"
+        phy-mode = "rgmii";
 
         // --- Optional properties below (uncomment as needed) ---
 

@@ -219,6 +219,7 @@ struct ethoc {
 	struct mii_bus *mdio;
 	struct clk *clk;
 	s8 phy_id;
+	phy_interface_t phy_interface;
 
 	int old_link;
 	int old_duplex;
@@ -716,7 +717,7 @@ static int ethoc_mdio_probe(struct net_device *dev)
 	priv->old_link = -1;
 
 	err = phy_connect_direct(dev, phy, ethoc_mdio_poll,
-				 PHY_INTERFACE_MODE_GMII);
+				 priv->phy_interface);
 	if (err) {
 		dev_err(&dev->dev, "could not attach to PHY\n");
 		return err;
@@ -1153,6 +1154,12 @@ static int ethoc_probe(struct platform_device *pdev)
 	} else {
 		of_get_mac_address(pdev->dev.of_node, netdev->dev_addr);
 		priv->phy_id = -1;
+		ret = of_get_phy_mode(pdev->dev.of_node, &priv->phy_interface);
+		if (ret < 0) {
+			dev_warn(&pdev->dev,
+				"missing phy-mode in DT, defaulting to GMII\n");
+			priv->phy_interface = PHY_INTERFACE_MODE_GMII;
+		}
 	}
 
 	/* Check that the given MAC address is valid. If it isn't, read the
