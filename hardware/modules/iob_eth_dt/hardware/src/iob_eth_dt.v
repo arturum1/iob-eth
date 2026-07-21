@@ -471,7 +471,7 @@ module iob_eth_dt #(
        .data_o(rx_bd_num)
    );
 
-   reg rx_bd_num_init_nxt;
+   reg  rx_bd_num_init_nxt;
    wire rx_bd_num_init;
    iob_reg_ca #(
       .DATA_W (1),
@@ -761,9 +761,10 @@ module iob_eth_dt #(
                rx_bd_addr_o = rx_bd_num << 1;
                rx_bd_wen_o = 1;
                // Clear READY bit, set received length in bits [31:16] (Linux ethoc compatible format)
+               // Use stored value from state 4 instead of live rx_nbytes_i, which is 0
+               // by this point because rcv_ack already propagated to MII and reset addr_o.
                rx_bd_o = {
-                  {(16 - BUFFER_W) {1'b0}},
-                  rx_nbytes_i,
+                  rx_buffer_descriptor[31:16],
                   1'b0,
                   rx_buffer_descriptor[14:13],
                   rx_buffer_descriptor[12:0]
@@ -796,9 +797,9 @@ module iob_eth_dt #(
          // The arst_i block's rx_bd_num_nxt = tx_bd_num_i can never take effect
          // because the register holds RST_VAL during reset and ignores data_i.
          if (!rx_bd_num_init && tx_bd_num_i != 0) begin
-            rx_bd_num_nxt = tx_bd_num_i;
+            rx_bd_num_nxt      = tx_bd_num_i;
             rx_bd_num_init_nxt = 1;
-            rx_state_nxt = 0;  // Hold state to avoid processing with stale rx_bd_num
+            rx_state_nxt       = 0;  // Hold state to avoid processing with stale rx_bd_num
          end
 
       end
