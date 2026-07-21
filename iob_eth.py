@@ -1494,7 +1494,7 @@ def setup(py_params_dict):
         clocks = <&sys_clk>;
         // PHY interface mode. Must match the hardware wiring.
         // Options: "mii", "rmii", "rgmii", "rgmii-id", "rgmii-rxid", "rgmii-txid", "gmii"
-        phy-mode = "rgmii";
+        phy-mode = "rgmii-rxid";
 
         // --- Optional properties below (uncomment as needed) ---
 
