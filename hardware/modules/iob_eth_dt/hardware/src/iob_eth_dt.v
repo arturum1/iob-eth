@@ -471,17 +471,17 @@ module iob_eth_dt #(
        .data_o(rx_bd_num)
    );
 
-   reg  rx_bd_num_init_nxt;
-   wire rx_bd_num_init;
+   reg  [BD_ADDR_W-2:0] tx_bd_num_prev_nxt;
+   wire [BD_ADDR_W-2:0] tx_bd_num_prev;
    iob_reg_ca #(
-      .DATA_W (1),
+      .DATA_W (BD_ADDR_W - 1),
       .RST_VAL(0)
-   ) rx_bd_num_init_reg (
+   ) tx_bd_num_prev_reg (
        .clk_i (clk_i),
        .cke_i (cke_i),
        .arst_i(arst_i),
-       .data_i(rx_bd_num_init_nxt),
-       .data_o(rx_bd_num_init)
+       .data_i(tx_bd_num_prev_nxt),
+       .data_o(tx_bd_num_prev)
    );
 
    reg  [AXI_LEN_W-1:0] rx_burst_word_num_nxt;
@@ -579,7 +579,7 @@ module iob_eth_dt #(
       rx_req                     = 0;
       rx_state_nxt               = rx_state + 1'b1;
       rx_bd_num_nxt              = rx_bd_num;
-      rx_bd_num_init_nxt         = rx_bd_num_init;
+      tx_bd_num_prev_nxt         = tx_bd_num_prev;
       rx_bd_addr_o               = 0;
       rx_bd_wen_o                = 0;
       rx_bd_o                    = 0;
@@ -793,13 +793,12 @@ module iob_eth_dt #(
 
          endcase
 
-         // Synchronous init: load rx_bd_num from tx_bd_num_i after reset.
-         // The arst_i block's rx_bd_num_nxt = tx_bd_num_i can never take effect
-         // because the register holds RST_VAL during reset and ignores data_i.
-         if (!rx_bd_num_init && tx_bd_num_i != 0) begin
+         // Edge detection: re-initialize rx_bd_num when tx_bd_num_i changes
+         tx_bd_num_prev_nxt = tx_bd_num_i;
+         if (tx_bd_num_i != tx_bd_num_prev) begin
             rx_bd_num_nxt      = tx_bd_num_i;
-            rx_bd_num_init_nxt = 1;
-            rx_state_nxt       = 0;  // Hold state to avoid processing with stale rx_bd_num
+            tx_bd_num_prev_nxt = tx_bd_num_i;
+            rx_state_nxt       = 0;
          end
 
       end
