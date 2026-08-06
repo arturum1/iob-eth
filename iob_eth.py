@@ -604,23 +604,6 @@ def setup(py_params_dict):
                     {"name": "internal_frame_word_ready_rd", "width": 1},
                 ],
             },
-            {
-                "name": "eth_clock_domain",
-                "descr": "",
-                "signals": [
-                    {"name": "iob_eth_tx_buffer_enA", "width": 1},
-                    {"name": "iob_eth_tx_buffer_addrA", "width": "`IOB_ETH_BUFFER_W"},
-                    {"name": "iob_eth_tx_buffer_dinA", "width": 8},
-                    {"name": "iob_eth_tx_buffer_addrB", "width": "`IOB_ETH_BUFFER_W"},
-                    {"name": "iob_eth_tx_buffer_doutB", "width": 8},
-                    {"name": "iob_eth_rx_buffer_enA", "width": 1},
-                    {"name": "iob_eth_rx_buffer_addrA", "width": "`IOB_ETH_BUFFER_W"},
-                    {"name": "iob_eth_rx_buffer_dinA", "width": 8},
-                    {"name": "iob_eth_rx_buffer_enB", "width": 1},
-                    {"name": "iob_eth_rx_buffer_addrB", "width": "`IOB_ETH_BUFFER_W"},
-                    {"name": "iob_eth_rx_buffer_doutB", "width": 8},
-                ],
-            },
             # MII management
             {
                 "name": "mii_reg",
@@ -674,26 +657,18 @@ def setup(py_params_dict):
             {
                 "name": "cdc_system",
                 "signals": [
-                    {"name": "rcv_ack", "width": 1},
                     {"name": "send", "width": 1},
                     {"name": "crc_en", "width": 1},
                     {"name": "tx_nbytes", "width": 11},
-                    {"name": "crc_err", "width": 1},
-                    {"name": "rx_nbytes", "width": "`IOB_ETH_BUFFER_W"},
-                    {"name": "rx_data_rcvd", "width": 1},
                     {"name": "tx_ready", "width": 1},
                 ],
             },
             {
                 "name": "cdc_eth",
                 "signals": [
-                    {"name": "eth_rcv_ack", "width": 1},
                     {"name": "eth_send", "width": 1},
                     {"name": "eth_crc_en", "width": 1},
                     {"name": "eth_tx_nbytes", "width": 11},
-                    {"name": "eth_crc_err", "width": 1},
-                    {"name": "iob_eth_rx_buffer_addrA"},  # eth_rx_nbytes
-                    {"name": "eth_rx_data_rcvd", "width": 1},
                     {"name": "eth_tx_ready", "width": 1},
                 ],
             },
@@ -737,10 +712,9 @@ def setup(py_params_dict):
                     {"name": "bd_wstrb_wrrd"},
                     {"name": "bd_ready_wrrd"},
                     {"name": "bd_rvalid_wrrd"},
-                    # Status signals
-                    {"name": "rcv_ack"},
-                    {"name": "rx_data_rcvd"},
-                    {"name": "rx_nbytes"},
+                    # rx_nbytes status from Data Transfer block
+                    {"name": "rx_nbytes_valid"},
+                    {"name": "rx_nbytes", "width": "BUFFER_W"},
                 ],
             },
             # Data Transfer wires
@@ -778,18 +752,319 @@ def setup(py_params_dict):
                     {"name": "phy_rst_cnt_o"},
                 ],
             },
+            # TX data FIFO
+            {
+                "name": "tx_fifo_decl",
+                "descr": "TX data FIFO",
+                "signals": [
+                    {"name": "tx_fifo_w_en", "width": 1},
+                    {"name": "tx_fifo_w_data", "width": 8},
+                    {"name": "tx_fifo_w_full", "width": 1},
+                    {"name": "tx_fifo_w_empty", "width": 1},
+                    {"name": "tx_fifo_r_en", "width": 1},
+                    {"name": "tx_fifo_r_data", "width": 8},
+                    {"name": "tx_fifo_r_empty", "width": 1},
+                    {"name": "tx_fifo_ext_mem_w_clk", "width": 1},
+                    {"name": "tx_fifo_ext_mem_w_en", "width": 1},
+                    {"name": "tx_fifo_ext_mem_w_addr", "width": "BUFFER_W"},
+                    {"name": "tx_fifo_ext_mem_w_data", "width": 8},
+                    {"name": "tx_fifo_ext_mem_r_clk", "width": 1},
+                    {"name": "tx_fifo_ext_mem_r_en", "width": 1},
+                    {"name": "tx_fifo_ext_mem_r_addr", "width": "BUFFER_W"},
+                    {"name": "tx_fifo_ext_mem_r_data", "width": 8},
+                ],
+            },
+            {
+                "name": "tx_fifo_w_clk_en_rst_s",
+                "signals": [
+                    {"name": "clk_i"},
+                    {"name": "cke_i"},
+                    {"name": "arst_i"},
+                    {"name": "1'b0"},
+                    {"name": "tx_fifo_w_en"},
+                ],
+            },
+            {
+                "name": "tx_fifo_w_data",
+                "signals": [
+                    {"name": "tx_fifo_w_data", "width": 8},
+                ],
+            },
+            {
+                "name": "tx_fifo_w_full",
+                "signals": [
+                    {"name": "tx_fifo_w_full"},
+                ],
+            },
+            {
+                "name": "tx_fifo_w_empty",
+                "signals": [
+                    {"name": "tx_fifo_w_empty"},
+                ],
+            },
+            {
+                "name": "tx_fifo_r_clk_en_rst_s",
+                "signals": [
+                    {"name": "mii_tx_clk_i"},
+                    {"name": "1'b1"},
+                    {"name": "tx_phy_rst"},
+                    {"name": "1'b0"},
+                    {"name": "tx_fifo_r_en"},
+                ],
+            },
+            {
+                "name": "tx_fifo_r_data",
+                "signals": [
+                    {"name": "tx_fifo_r_data", "width": 8},
+                ],
+            },
+            {
+                "name": "tx_fifo_r_empty",
+                "signals": [
+                    {"name": "tx_fifo_r_empty"},
+                ],
+            },
+            {
+                "name": "tx_fifo_extmem",
+                "signals": [
+                    {"name": "tx_fifo_ext_mem_w_clk"},
+                    {"name": "tx_fifo_ext_mem_w_en"},
+                    {"name": "tx_fifo_ext_mem_w_addr", "width": "BUFFER_W"},
+                    {"name": "tx_fifo_ext_mem_w_data", "width": 8},
+                    {"name": "tx_fifo_ext_mem_r_clk"},
+                    {"name": "tx_fifo_ext_mem_r_en"},
+                    {"name": "tx_fifo_ext_mem_r_addr", "width": "BUFFER_W"},
+                    {"name": "tx_fifo_ext_mem_r_data", "width": 8},
+                ],
+            },
+            {
+                "name": "tx_fifo_ram",
+                "signals": [
+                    {"name": "tx_fifo_ext_mem_r_clk"},
+                    {"name": "tx_fifo_ext_mem_r_en"},
+                    {"name": "tx_fifo_ext_mem_r_addr", "width": "BUFFER_W"},
+                    {"name": "tx_fifo_ext_mem_r_data", "width": 8},
+                    {"name": "tx_fifo_ext_mem_w_clk"},
+                    {"name": "tx_fifo_ext_mem_w_en"},
+                    {"name": "tx_fifo_ext_mem_w_addr", "width": "BUFFER_W"},
+                    {"name": "tx_fifo_ext_mem_w_data", "width": 8},
+                ],
+            },
+            {
+                "name": "tx_fifo_io",
+                "signals": [
+                    {"name": "tx_fifo_r_en"},
+                    {"name": "tx_fifo_r_data", "width": 8},
+                ],
+            },
+            # RX data FIFO
+            {
+                "name": "rx_fifo_decl",
+                "descr": "RX data FIFO",
+                "signals": [
+                    {"name": "rx_fifo_w_en", "width": 1},
+                    {"name": "rx_fifo_w_data", "width": 8},
+                    {"name": "rx_fifo_w_empty", "width": 1},
+                    {"name": "rx_fifo_r_en", "width": 1},
+                    {"name": "rx_fifo_r_data", "width": 8},
+                    {"name": "rx_fifo_r_empty", "width": 1},
+                    {"name": "rx_fifo_ext_mem_w_clk", "width": 1},
+                    {"name": "rx_fifo_ext_mem_w_en", "width": 1},
+                    {"name": "rx_fifo_ext_mem_w_addr", "width": "BUFFER_W"},
+                    {"name": "rx_fifo_ext_mem_w_data", "width": 8},
+                    {"name": "rx_fifo_ext_mem_r_clk", "width": 1},
+                    {"name": "rx_fifo_ext_mem_r_en", "width": 1},
+                    {"name": "rx_fifo_ext_mem_r_addr", "width": "BUFFER_W"},
+                    {"name": "rx_fifo_ext_mem_r_data", "width": 8},
+                ],
+            },
+            {
+                "name": "rx_fifo_w_clk_en_rst_s",
+                "signals": [
+                    {"name": "mii_rx_clk_i"},
+                    {"name": "1'b1"},
+                    {"name": "rx_phy_rst"},
+                    {"name": "1'b0"},
+                    {"name": "rx_fifo_w_en"},
+                ],
+            },
+            {
+                "name": "rx_fifo_w_data",
+                "signals": [
+                    {"name": "rx_fifo_w_data", "width": 8},
+                ],
+            },
+            {
+                "name": "rx_fifo_w_empty",
+                "signals": [
+                    {"name": "rx_fifo_w_empty"},
+                ],
+            },
+            {
+                "name": "rx_fifo_r_clk_en_rst_s",
+                "signals": [
+                    {"name": "clk_i"},
+                    {"name": "cke_i"},
+                    {"name": "arst_i"},
+                    {"name": "1'b0"},
+                    {"name": "rx_fifo_r_en"},
+                ],
+            },
+            {
+                "name": "rx_fifo_r_data",
+                "signals": [
+                    {"name": "rx_fifo_r_data", "width": 8},
+                ],
+            },
+            {
+                "name": "rx_fifo_r_empty",
+                "signals": [
+                    {"name": "rx_fifo_r_empty"},
+                ],
+            },
+            {
+                "name": "rx_fifo_extmem",
+                "signals": [
+                    {"name": "rx_fifo_ext_mem_w_clk"},
+                    {"name": "rx_fifo_ext_mem_w_en"},
+                    {"name": "rx_fifo_ext_mem_w_addr", "width": "BUFFER_W"},
+                    {"name": "rx_fifo_ext_mem_w_data", "width": 8},
+                    {"name": "rx_fifo_ext_mem_r_clk"},
+                    {"name": "rx_fifo_ext_mem_r_en"},
+                    {"name": "rx_fifo_ext_mem_r_addr", "width": "BUFFER_W"},
+                    {"name": "rx_fifo_ext_mem_r_data", "width": 8},
+                ],
+            },
+            {
+                "name": "rx_fifo_ram",
+                "signals": [
+                    {"name": "rx_fifo_ext_mem_r_clk"},
+                    {"name": "rx_fifo_ext_mem_r_en"},
+                    {"name": "rx_fifo_ext_mem_r_addr", "width": "BUFFER_W"},
+                    {"name": "rx_fifo_ext_mem_r_data", "width": 8},
+                    {"name": "rx_fifo_ext_mem_w_clk"},
+                    {"name": "rx_fifo_ext_mem_w_en"},
+                    {"name": "rx_fifo_ext_mem_w_addr", "width": "BUFFER_W"},
+                    {"name": "rx_fifo_ext_mem_w_data", "width": 8},
+                ],
+            },
+            {
+                "name": "rx_fifo_o",
+                "signals": [
+                    {"name": "rx_fifo_w_en"},
+                    {"name": "rx_fifo_w_data", "width": 8},
+                ],
+            },
+            {
+                "name": "rx_fifo_flow_control",
+                "signals": [
+                    {"name": "rx_fifo_w_empty"},
+                ],
+            },
+            # RX info FIFO
+            {
+                "name": "info_fifo_decl",
+                "descr": "RX info FIFO",
+                "signals": [
+                    {"name": "rx_info_w_en", "width": 1},
+                    {"name": "rx_info_w_data", "width": 12},
+                    {"name": "rx_info_w_full", "width": 1},
+                    {"name": "rx_info_r_en", "width": 1},
+                    {"name": "rx_info_r_data", "width": 12},
+                    {"name": "rx_info_r_empty", "width": 1},
+                    {"name": "rx_info_ext_mem_w_clk", "width": 1},
+                    {"name": "rx_info_ext_mem_w_en", "width": 1},
+                    {"name": "rx_info_ext_mem_w_addr", "width": 1},
+                    {"name": "rx_info_ext_mem_w_data", "width": 12},
+                    {"name": "rx_info_ext_mem_r_clk", "width": 1},
+                    {"name": "rx_info_ext_mem_r_en", "width": 1},
+                    {"name": "rx_info_ext_mem_r_addr", "width": 1},
+                    {"name": "rx_info_ext_mem_r_data", "width": 12},
+                ],
+            },
+            {
+                "name": "info_fifo_w_clk_en_rst_s",
+                "signals": [
+                    {"name": "mii_rx_clk_i"},
+                    {"name": "1'b1"},
+                    {"name": "rx_phy_rst"},
+                    {"name": "1'b0"},
+                    {"name": "rx_info_w_en"},
+                ],
+            },
+            {
+                "name": "info_fifo_w_data",
+                "signals": [
+                    {"name": "rx_info_w_data", "width": 12},
+                ],
+            },
+            {
+                "name": "info_fifo_w_full",
+                "signals": [
+                    {"name": "rx_info_w_full"},
+                ],
+            },
+            {
+                "name": "info_fifo_r_clk_en_rst_s",
+                "signals": [
+                    {"name": "clk_i"},
+                    {"name": "cke_i"},
+                    {"name": "arst_i"},
+                    {"name": "1'b0"},
+                    {"name": "rx_info_r_en"},
+                ],
+            },
+            {
+                "name": "info_fifo_r_data",
+                "signals": [
+                    {"name": "rx_info_r_data", "width": 12},
+                ],
+            },
+            {
+                "name": "info_fifo_r_empty",
+                "signals": [
+                    {"name": "rx_info_r_empty"},
+                ],
+            },
+            {
+                "name": "info_fifo_extmem",
+                "signals": [
+                    {"name": "rx_info_ext_mem_w_clk"},
+                    {"name": "rx_info_ext_mem_w_en"},
+                    {"name": "rx_info_ext_mem_w_addr", "width": 1},
+                    {"name": "rx_info_ext_mem_w_data", "width": 12},
+                    {"name": "rx_info_ext_mem_r_clk"},
+                    {"name": "rx_info_ext_mem_r_en"},
+                    {"name": "rx_info_ext_mem_r_addr", "width": 1},
+                    {"name": "rx_info_ext_mem_r_data", "width": 12},
+                ],
+            },
+            {
+                "name": "info_fifo_ram",
+                "signals": [
+                    {"name": "rx_info_ext_mem_r_clk"},
+                    {"name": "rx_info_ext_mem_r_en"},
+                    {"name": "rx_info_ext_mem_r_addr", "width": 1},
+                    {"name": "rx_info_ext_mem_r_data", "width": 12},
+                    {"name": "rx_info_ext_mem_w_clk"},
+                    {"name": "rx_info_ext_mem_w_en"},
+                    {"name": "rx_info_ext_mem_w_addr", "width": 1},
+                    {"name": "rx_info_ext_mem_w_data", "width": 12},
+                ],
+            },
+            {
+                "name": "rx_fifo_info",
+                "signals": [
+                    {"name": "rx_info_w_en"},
+                    {"name": "rx_info_w_data", "width": 12},
+                    {"name": "rx_info_w_full"},
+                ],
+            },
             # Transmitter
             {
                 "name": "tx_phy_rst",
                 "signals": [
                     {"name": "tx_phy_rst"},
-                ],
-            },
-            {
-                "name": "tx_buffer",
-                "signals": [
-                    {"name": "iob_eth_tx_buffer_addrB"},
-                    {"name": "iob_eth_tx_buffer_doutB"},
                 ],
             },
             {
@@ -817,54 +1092,11 @@ def setup(py_params_dict):
                 ],
             },
             {
-                "name": "rx_buffer",
-                "signals": [
-                    {"name": "iob_eth_rx_buffer_enA"},
-                    {"name": "iob_eth_rx_buffer_addrA"},
-                    {"name": "iob_eth_rx_buffer_dinA"},
-                ],
-            },
-            {
-                "name": "rx_dt",
-                "signals": [
-                    {"name": "eth_rcv_ack"},
-                    {"name": "eth_rx_data_rcvd"},
-                    {"name": "eth_crc_err"},
-                ],
-            },
-            {
                 "name": "rx_mii",
                 "signals": [
                     {"name": "mii_rx_clk_i"},
                     {"name": "mii_rx_dv_i"},
                     {"name": "mii_rxd_i"},
-                ],
-            },
-            # at2p wires
-            {
-                "name": "tx_ram_at2p",
-                "signals": [
-                    {"name": "mii_tx_clk_i"},
-                    {"name": "tx_ram_at2p_en"},
-                    {"name": "iob_eth_tx_buffer_addrB"},
-                    {"name": "iob_eth_tx_buffer_doutB"},
-                    {"name": "clk_i"},
-                    {"name": "iob_eth_tx_buffer_enA"},
-                    {"name": "iob_eth_tx_buffer_addrA"},
-                    {"name": "iob_eth_tx_buffer_dinA"},
-                ],
-            },
-            {
-                "name": "rx_ram_at2p",
-                "signals": [
-                    {"name": "clk_i"},
-                    {"name": "iob_eth_rx_buffer_enB"},
-                    {"name": "iob_eth_rx_buffer_addrB"},
-                    {"name": "iob_eth_rx_buffer_doutB"},
-                    {"name": "mii_rx_clk_i"},
-                    {"name": "iob_eth_rx_buffer_enA"},
-                    {"name": "iob_eth_rx_buffer_addrA"},
-                    {"name": "iob_eth_rx_buffer_dinA"},
                 ],
             },
             # tdp wires
@@ -919,9 +1151,9 @@ def setup(py_params_dict):
             {
                 "name": "dt_tx_front_end",
                 "signals": [
-                    {"name": "iob_eth_tx_buffer_enA"},
-                    {"name": "iob_eth_tx_buffer_addrA"},
-                    {"name": "iob_eth_tx_buffer_dinA"},
+                    {"name": "tx_fifo_w_en"},
+                    {"name": "tx_fifo_w_data", "width": 8},
+                    {"name": "tx_fifo_w_full"},
                     {"name": "tx_ready"},
                     {"name": "crc_en"},
                     {"name": "tx_nbytes"},
@@ -931,13 +1163,13 @@ def setup(py_params_dict):
             {
                 "name": "dt_rx_back_end",
                 "signals": [
-                    {"name": "iob_eth_rx_buffer_enB"},
-                    {"name": "iob_eth_rx_buffer_addrB"},
-                    {"name": "iob_eth_rx_buffer_doutB"},
-                    {"name": "rx_data_rcvd"},
-                    {"name": "crc_err"},
-                    {"name": "rx_nbytes"},
-                    {"name": "rcv_ack"},
+                    {"name": "rx_fifo_r_en"},
+                    {"name": "rx_fifo_r_data", "width": 8},
+                    {"name": "rx_info_r_en"},
+                    {"name": "rx_info_r_empty"},
+                    {"name": "rx_info_r_data", "width": 12},
+                    {"name": "rx_nbytes_valid"},
+                    {"name": "rx_nbytes", "width": "BUFFER_W"},
                 ],
             },
             {
@@ -1344,7 +1576,7 @@ def setup(py_params_dict):
                 "instance_description": "Ethernet transmitter that reads payload bytes from a host interface, emits preamble/SFD and payload, computes and appends the CRC, and provides flow-control so the surrounding logic knows when the transmitter is ready for the next frame.",
                 "connect": {
                     "arst_i": "tx_phy_rst",
-                    "buffer_io": "tx_buffer",
+                    "fifo_io": "tx_fifo_io",
                     "dt_io": "tx_dt",
                     "mii_io": "tx_mii",
                 },
@@ -1353,40 +1585,121 @@ def setup(py_params_dict):
             {
                 "core_name": "iob_eth_rx",
                 "instance_name": "receiver",
-                "instance_description": "Ethernet receiver that detects frame start, captures the destination MAC and payload, writes received bytes to a host interface, and validates the frame with a CRC check; it produces a ready/received indication for higher-level logic.",
+                "instance_description": "Ethernet receiver that detects frame start, captures the destination MAC and payload, writes received bytes and a status info word to host FIFOs, and validates the frame with a CRC check.",
                 "connect": {
                     "arst_i": "rx_phy_rst",
-                    "buffer_o": "rx_buffer",
-                    "dt_io": "rx_dt",
+                    "fifo_o": "rx_fifo_o",
+                    "info_io": "rx_fifo_info",
+                    "flow_control_i": "rx_fifo_flow_control",
                     "mii_i": "rx_mii",
                 },
             },
-            # Buffer memories
+            # TX data FIFO
             {
-                "core_name": "iob_ram_at2p",
-                "instance_name": "tx_buffer",
-                "instance_description": "Buffer memory for data to be transmitted.",
+                "core_name": "iob_fifo_async",
+                "instance_name": "tx_data_fifo",
+                "instance_description": "TX data FIFO: written in the system clock domain (Data Transfer block), read in the MII TX clock domain (transmitter).",
                 "parameters": {
-                    # Note: the tx buffer also includes PREAMBLE+SFD,
-                    # maybe we should increase this size to acount for
-                    # this.
-                    "ADDR_W": "`IOB_ETH_BUFFER_W",
-                    "DATA_W": 8,
+                    "W_DATA_W": 8,
+                    "R_DATA_W": 8,
+                    "ADDR_W": "BUFFER_W",
                 },
                 "connect": {
-                    "ram_at2p_s": "tx_ram_at2p",
+                    "w_clk_en_rst_s": "tx_fifo_w_clk_en_rst_s",
+                    "w_data_i": "tx_fifo_w_data",
+                    "w_full_o": "tx_fifo_w_full",
+                    "w_empty_o": "tx_fifo_w_empty",
+                    "w_level_o": "z",
+                    "r_clk_en_rst_s": "tx_fifo_r_clk_en_rst_s",
+                    "r_data_o": "tx_fifo_r_data",
+                    "r_full_o": "z",
+                    "r_empty_o": "tx_fifo_r_empty",
+                    "r_level_o": "z",
+                    "extmem_io": "tx_fifo_extmem",
                 },
             },
             {
                 "core_name": "iob_ram_at2p",
-                "instance_name": "rx_buffer",
-                "instance_description": "Buffer memory for data received.",
+                "instance_name": "tx_data_fifo_ram",
+                "instance_description": "",
                 "parameters": {
-                    "ADDR_W": "`IOB_ETH_BUFFER_W",
+                    "ADDR_W": "BUFFER_W",
                     "DATA_W": 8,
                 },
                 "connect": {
-                    "ram_at2p_s": "rx_ram_at2p",
+                    "ram_at2p_s": "tx_fifo_ram",
+                },
+            },
+            # RX data FIFO
+            {
+                "core_name": "iob_fifo_async",
+                "instance_name": "rx_data_fifo",
+                "instance_description": "RX data FIFO: written in the MII RX clock domain (receiver), read in the system clock domain (Data Transfer block).",
+                "parameters": {
+                    "W_DATA_W": 8,
+                    "R_DATA_W": 8,
+                    "ADDR_W": "BUFFER_W",
+                },
+                "connect": {
+                    "w_clk_en_rst_s": "rx_fifo_w_clk_en_rst_s",
+                    "w_data_i": "rx_fifo_w_data",
+                    "w_full_o": "z",
+                    "w_empty_o": "rx_fifo_w_empty",
+                    "w_level_o": "z",
+                    "r_clk_en_rst_s": "rx_fifo_r_clk_en_rst_s",
+                    "r_data_o": "rx_fifo_r_data",
+                    "r_full_o": "z",
+                    "r_empty_o": "rx_fifo_r_empty",
+                    "r_level_o": "z",
+                    "extmem_io": "rx_fifo_extmem",
+                },
+            },
+            {
+                "core_name": "iob_ram_at2p",
+                "instance_name": "rx_data_fifo_ram",
+                "instance_description": "",
+                "parameters": {
+                    "ADDR_W": "BUFFER_W",
+                    "DATA_W": 8,
+                },
+                "connect": {
+                    "ram_at2p_s": "rx_fifo_ram",
+                },
+            },
+            # RX info FIFO
+            {
+                "core_name": "iob_fifo_async",
+                "instance_name": "rx_info_fifo",
+                "instance_description": "RX info FIFO: carries the frame info word {crc_err, length[10:0]} from the MII RX to the system clock domain.",
+                "parameters": {
+                    "W_DATA_W": 12,
+                    "R_DATA_W": 12,
+                    "ADDR_W": 1,
+                },
+                "connect": {
+                    "w_clk_en_rst_s": "info_fifo_w_clk_en_rst_s",
+                    "w_data_i": "info_fifo_w_data",
+                    "w_full_o": "info_fifo_w_full",
+                    "w_empty_o": "z",
+                    "w_level_o": "z",
+                    "r_clk_en_rst_s": "info_fifo_r_clk_en_rst_s",
+                    "r_data_o": "info_fifo_r_data",
+                    "r_full_o": "z",
+                    "r_empty_o": "info_fifo_r_empty",
+                    "r_level_o": "z",
+                    "extmem_io": "info_fifo_extmem",
+                },
+            },
+            {
+                "core_name": "iob_ram_at2p",
+                "instance_name": "rx_info_fifo_ram",
+                "instance_description": "",
+                "parameters": {
+                    "ADDR_W": 1,
+                    "DATA_W": 12,
+                },
+                "connect": {
+                    "ram_at2p_s": "info_fifo_ram",
                 },
             },
             {
@@ -1657,7 +1970,6 @@ def setup(py_params_dict):
     end
     assign miistatus_rvalid_wrrd = miistatus_rvalid_wrrd_reg;
 
-    assign tx_ram_at2p_en = 1'b1;
    assign bd_ram_port_a_addr = bd_addr_wrrd[2+:(BD_NUM_LOG2+1)];
    assign dt_csrs_control_rx_en = moder_wr[0];
    assign dt_csrs_control_tx_en = moder_wr[1];
