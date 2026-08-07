@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 IObundle
+ *
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 #include "iob_eth.h"
 #include "iob_eth_csrs.h"
 #include "iob_eth_macros.h"

@@ -1,11 +1,10 @@
-// SPDX-License-Identifier: GPL-2.0-only
 /*
- * linux/drivers/net/ethernet/ethoc.c
+ * SPDX-FileCopyrightText: 2007-2008 Avionic Design Development GmbH
+ * SPDX-FileCopyrightText: 2008-2009 Avionic Design GmbH
+ * SPDX-FileCopyrightText: Written by Thierry Reding <thierry.reding@avionic-design.de>
+ * SPDX-FileCopyrightText: 2026 IObundle
  *
- * Copyright (C) 2007-2008 Avionic Design Development GmbH
- * Copyright (C) 2008-2009 Avionic Design GmbH
- *
- * Written by Thierry Reding <thierry.reding@avionic-design.de>
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 
 #include <linux/dma-mapping.h>
